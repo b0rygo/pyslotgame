@@ -1,11 +1,14 @@
 #display settings
 DEFAULT_IMAGE_SIZE = (300, 300)
 FPS = 120
-HEIGHT = 720
-WIDTH = 1280
+HEIGHT = 1000
+WIDTH = 1602
+START_X, START_Y = 0, -300
+X_OFFSET, Y_OFFSET = 20, 0
 
 #Imgaes
-BG_IMAGE_PATH = 'icons/bg.png'
+BG_IMAGE_PATH = 'bg/bg.png'
+GAME_INDICES = [1, 2, 3]
 SYM_PATH = "icons"
 
 symbols = {
