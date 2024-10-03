@@ -1,48 +1,45 @@
 import sys
-import random
-import os
-from PIL import Image
+from setting import *
+from machine import Machine
+import pygame
 
-# SLOT GAME BY ERIC
+class Game:
+    def __init__(self):
+        #setup
+        pygame.init()
+        self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
+        pygame.display.set_caption('SLOTGAME BY ERIC')
+        self.clock = pygame.time.Clock()
 
-def rzut():
-    pass
+        try:
+            self.bg_image = pygame.image.load(BG_IMAGE_PATH)
+        except pygame.error as e:
+            print(f"Nie można załadować obrazu tła: {BG_IMAGE_PATH}")
+            print(e)
+            print("Ścieżka do obrazu tła:", BG_IMAGE_PATH)
+        self.machine = Machine()
+        self.delta_time = 0
 
-def wyswieltanie():
-    pass
+    def run(self):
 
-def wyplata():
-    pass
+        self.start_time = pygame.time.get_ticks()
 
-def main():
-    balance = 100
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
 
-    # Ścieżka do folderu z ikonami
-    icons_folder = 'icons/'
+        #CZASY
+        self.delta_time = (pygame.time.get_ticks() - self.start_time) / 1000
+        self.start_time = pygame.time.get_ticks()
 
-    # Lista nazw plików ikon
-    icon_names = ['Angular.png', 'CSS.png', 'HTML.png', 'Java.png', 'JS.png', 'PHP.png', 'PYTHON.png', 'react.png']
+        pygame.display.update()
+        self.screen.blit(self.bg_image, (0, 0))
+        self.machine.update(self.delta_time)
+        self.clock.tick(FPS)
 
-    print("*********************")
-    print("Welcome to Slot Game by Eric")
-    print("Symbols: ")
-    print("*********************")
+if __name__ == '__main__':
+    game = Game()
+    game.run()
 
-    # Ładowanie ikon
-    icons = []
-    for icon_name in icon_names:
-        img_path = os.path.join(icons_folder, icon_name)
-        img = Image.open(img_path)
-        icons.append(img)
-
-    # Wyświetlanie obrazów
-    for img in icons:
-        img.show()  # Wyświetla każdy obraz osobno w domyślnej przeglądarce obrazów
-
-
-if __name__ == "__main__":
-    main()
-
-asdasdasdasdasdasdasdasd
-asdasdasdasdas
-ASdasdasdasda
