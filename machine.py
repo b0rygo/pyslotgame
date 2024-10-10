@@ -53,6 +53,7 @@ class Machine:
             self.currPlayer.place_bet()
             self.machine_balance += self.currPlayer.bet_size
             self.currPlayer.last_payout = None
+            print(self.currPlayer.get_data())
 
     def draw_reels(self, delta_time):
         for reel in self.reel_list:
@@ -81,7 +82,16 @@ class Machine:
 
     def get_result(self):
         for reel in self.reel_list:
-            self.spin_result[reel] = self.reel_list[reel].reel_spin_result()
+            spin_result = self.reel_list[reel].reel_spin_result()  # Wynik spinu dla każdego bębna
+
+            # Sprawdź, czy wszystkie symbole są prawidłowe i przypisane do symboli
+            self.spin_result[reel] = []
+            for sym in spin_result:
+                if sym in symbols:
+                    self.spin_result[reel].append(symbols[sym])  # Dodaj ścieżkę grafiki do wyniku
+
+            # Wyświetlamy dokładne ścieżki plików JPG, które są przypisane do symboli
+            #print(f"Symbole dla tego bębna: {self.spin_result[reel]}")  # Debugging: teraz wyświetli pełne ścieżki plików .jpg
         return self.spin_result
 
     def check_wins(self, result):

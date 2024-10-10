@@ -45,16 +45,18 @@ class Reel:
         self.reel_is_spinning = True
 
     def reel_spin_result(self):
+        # Get and return text representation of symbols in a given reel
         spin_symbols = []
         for i in GAME_INDICES:
-            spin_symbols.append(self.symbol_list.sprites()[i].sym_type)
+            symbol = self.symbol_list.sprites()[i].sym_type
+            spin_symbols.append(symbol)
         return spin_symbols[::-1]
 
 class Symbol(pygame.sprite.Sprite):  # Definicja klasy Symbol, dziedziczącej po klasie pygame.sprite.Sprite
     def __init__(self, pathToFile, pos, idx):  # Konstruktor klasy Symbol, przyjmujący ścieżkę do pliku, pozycję i indeks
         super().__init__()  # Wywołanie konstruktora klasy bazowej (pygame.sprite.Sprite)
 
-        self.sym_type = pathToFile.split('/')[0]  # Rozdziela ścieżkę do pliku po znakach '/', aby uzyskać nazwę typu symbolu (tu pierwszy element)
+        self.sym_type = pathToFile.split('/')[-1].split('.')[0]  # Rozdziela ścieżkę do pliku po znakach '/', aby uzyskać nazwę typu symbolu (tu pierwszy element)
 
         self.pos = pos  # Przechowuje pozycję symbolu
         self.idx = idx  # Przechowuje indeks symbolu (numer kolejności na bębnie)
