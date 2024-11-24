@@ -4,134 +4,143 @@ from setting import *
 from win import *
 import pygame
 
-
 class Machine:
     def __init__(self):
-        self.display_surface = pygame.display.get_surface()
-        self.machine_balance = 10000.00
-        self.reel_index = 0
-        self.reel_list = {}
-        self.can_toggle = True
-        self.spinning = False
-        self.can_animate = False
-        self.win_animation_ongoing = False
+        # Inicjalizacja ustawień maszyny do gry
+        self.display_surface = pygame.display.get_surface()  # Pobranie bieżącej powierzchni wyświetlania Pygame
+        self.machine_balance = 10000.00  # Początkowy balans maszyny
+        self.reel_index = 0  # Indeks do śledzenia bębnów
+        self.reel_list = {}  # Słownik przechowujący wszystkie bębny
+        self.can_toggle = True  # Flaga pozwalająca na przełączanie między spinem a zatrzymaniem bębnów
+        self.spinning = False  # Informacja, czy bębny są obecnie w ruchu
+        self.can_animate = False  # Flaga pozwalająca na uruchomienie animacji
+        self.win_animation_ongoing = False  # Informacja, czy trwa animacja wygranej
 
-        # Results
-        self.prev_result = {0: None, 1: None, 2: None, 3: None, 4: None}
-        self.spin_result = {0: None, 1: None, 2: None, 3: None, 4: None}
+        # Wyniki z obrotów bębnów (poprzednie i bieżące)
+        self.prev_result = {0: None, 1: None, 2: None, 3: None, 4: None}  # Wyniki z poprzedniego obrotu
+        self.spin_result = {0: None, 1: None, 2: None, 3: None, 4: None}  # Wyniki z bieżącego obrotu
 
-        self.spawn_reels()
-        self.currPlayer = Player()
-
+        self.spawn_reels()  # Tworzenie bębnów
+        self.currPlayer = Player()  # Inicjalizacja gracza
 
     def cooldowns(self):
-        # Only lets player spin if all reels are NOT spinning
+        # Sprawdzanie, czy wszystkie bębny są zatrzymane i można rozpocząć nowy obrót
         for reel in self.reel_list:
-            if self.reel_list[reel].reel_is_spinning:
-                self.can_toggle = False
-                self.spinning = True
+            if self.reel_list[reel].reel_is_spinning:  # Jeżeli którykolwiek z bębnów się kręci
+                self.can_toggle = False  # Nie można przełączyć na nowy spin
+                self.spinning = True  # Maszyna jest w trybie spinowania
 
+        # Sprawdzanie, czy wszystkie bębny są zatrzymane
         if not self.can_toggle and [self.reel_list[reel].reel_is_spinning for reel in self.reel_list].count(False) == 5:
-            self.can_toggle = True
-            self.spin_result = self.get_result()
+            self.can_toggle = True  # Można ponownie uruchomić spin
+            self.spin_result = self.get_result()  # Pobieranie wyników z bębnów
 
+            # Sprawdzanie, czy nastąpiła wygrana
             if self.check_wins(self.spin_result):
-                self.win_data = self.check_wins(self.spin_result)
-                # Play the win sound
+                self.win_data = self.check_wins(self.spin_result)  # Dane dotyczące wygranej
+                # Odtwarzanie dźwięku wygranej (dźwięk należy dodać)
                 # self.play_win_sound(self.win_data)
-                self.pay_player(self.win_data, self.currPlayer)
-                #self.win_animation_ongoing = True
-                print(self.currPlayer.get_data())
+                self.pay_player(self.win_data, self.currPlayer)  # Wypłata nagrody graczowi
+                # self.win_animation_ongoing = True  # Flaga animacji wygranej
+                print(self.currPlayer.get_data())  # Debugowanie: wyświetlanie danych gracza
 
     def input(self):
-        keys = pygame.key.get_pressed()
+        # Obsługa wejścia klawiatury przez gracza
+        keys = pygame.key.get_pressed()  # Sprawdzanie naciśniętych klawiszy
 
-        # Checks for space key, ability to toggle spin, and balance to cover bet size
+        # Sprawdzanie, czy gracz nacisnął SPACJĘ, może wykonać spin i ma wystarczające środki
         if keys[pygame.K_SPACE] and self.can_toggle and self.currPlayer.balance >= self.currPlayer.bet_size:
-            self.toggle_spinning()
-            self.spin_time = pygame.time.get_ticks()
-            self.currPlayer.place_bet()
-            self.machine_balance += self.currPlayer.bet_size
-            self.currPlayer.last_payout = None
-            print(self.currPlayer.get_data())
+            self.toggle_spinning()  # Rozpoczęcie obrotu bębnów
+            self.spin_time = pygame.time.get_ticks()  # Rejestrowanie czasu rozpoczęcia spinu
+            self.currPlayer.place_bet()  # Pobranie zakładu od gracza
+            self.machine_balance += self.currPlayer.bet_size  # Dodanie zakładu do balansu maszyny
+            self.currPlayer.last_payout = None  # Zerowanie ostatniej wygranej
+            print(self.currPlayer.get_data())  # Debugowanie: wyświetlanie danych gracza
 
     def draw_reels(self, delta_time):
+        # Rysowanie bębnów na ekranie
         for reel in self.reel_list:
-            self.reel_list[reel].animate(delta_time)
+            self.reel_list[reel].animate(delta_time)  # Animacja bębnów
 
     def spawn_reels(self):
+        # Tworzenie bębnów i ustawianie ich pozycji
         if not self.reel_list:
-            x_topleft, y_topleft = 10, -300
-        while self.reel_index < 5:
+            x_topleft, y_topleft = 10, -300  # Pozycja pierwszego bębna
+        while self.reel_index < 5:  # Tworzenie 5 bębnów
             if self.reel_index > 0:
-                x_topleft, y_topleft = x_topleft + (300 + X_OFFSET), y_topleft
+                x_topleft, y_topleft = x_topleft + (300 + X_OFFSET), y_topleft  # Ustawianie pozycji kolejnych bębnów
 
-            self.reel_list[self.reel_index] = Reel((x_topleft, y_topleft))  # Need to create reel class
-            self.reel_index += 1
+            self.reel_list[self.reel_index] = Reel((x_topleft, y_topleft))  # Dodanie bębna do listy
+            self.reel_index += 1  # Przesunięcie indeksu
 
     def toggle_spinning(self):
+        # Przełączanie między spinem a zatrzymaniem bębnów
         if self.can_toggle:
-            self.spin_time = pygame.time.get_ticks()
-            self.spinning = not self.spinning
-            self.can_toggle = False
+            self.spin_time = pygame.time.get_ticks()  # Rejestrowanie czasu rozpoczęcia
+            self.spinning = not self.spinning  # Zmiana stanu spinu
+            self.can_toggle = False  # Blokada do czasu zakończenia spinu
 
             for reel in self.reel_list:
-                self.reel_list[reel].start_spin(int(reel) * 200)
-                # self.spin_sound.play()
-                self.win_animation_ongoing = False
+                self.reel_list[reel].start_spin(int(reel) * 200)  # Uruchomienie spinu bębna z opóźnieniem
+                # self.spin_sound.play()  # Odtwarzanie dźwięku spinu (dźwięk należy dodać)
+                self.win_animation_ongoing = False  # Zatrzymanie animacji wygranej
 
     def get_result(self):
+        # Pobieranie wyników spinu z bębnów
         for reel in self.reel_list:
-            spin_result = self.reel_list[reel].reel_spin_result()  # Wynik spinu dla każdego bębna
+            spin_result = self.reel_list[reel].reel_spin_result()  # Wynik spinu dla danego bębna
 
-            # Sprawdź, czy wszystkie symbole są prawidłowe i przypisane do symboli
+            # Sprawdzanie, czy symbole są prawidłowe i przypisane do grafiki
             self.spin_result[reel] = []
             for sym in spin_result:
                 if sym in symbols:
-                    self.spin_result[reel].append(symbols[sym])  # Dodaj ścieżkę grafiki do wyniku
+                    self.spin_result[reel].append(symbols[sym])  # Dodanie ścieżki grafiki do wyniku
 
-            # Wyświetlamy dokładne ścieżki plików JPG, które są przypisane do symboli
-            #print(f"Symbole dla tego bębna: {self.spin_result[reel]}")  # Debugging: teraz wyświetli pełne ścieżki plików .jpg
-        return self.spin_result
+        return self.spin_result  # Zwrócenie wyników spinu
 
     def check_wins(self, result):
-        hits = {}
-        horizontal = flip_horizontal(result)
+        # Sprawdzanie, czy wystąpiła wygrana
+        hits = {}  # Słownik przechowujący dane o wygranych
+        horizontal = flip_horizontal(result)  # Transponowanie wyników do wierszy
+
         for row in horizontal:
             for sym in row:
-                if row.count(sym) > 2:  # Potential win
-                    possible_win = [idx for idx, val in enumerate(row) if sym == val]
+                if row.count(sym) > 2:  # Jeżeli dany symbol występuje więcej niż 2 razy
+                    possible_win = [idx for idx, val in enumerate(row) if sym == val]  # Indeksy zwycięskich symboli
 
-                    # Check possible_win for a subsequence longer than 2 and add to hits
+                    # Sprawdzanie, czy występuje sekwencja wygranej
                     if len(longest_seq(possible_win)) > 2:
-                        hits[horizontal.index(row) + 1] = [sym, longest_seq(possible_win)]
+                        hits[horizontal.index(row) + 1] = [sym, longest_seq(possible_win)]  # Dodanie do wygranych
         if hits:
-            self.can_animate = True
-            return hits
+            self.can_animate = True  # Flaga pozwalająca na animację wygranej
+            return hits  # Zwrócenie wygranych danych
 
     def pay_player(self, win_data, curr_player):
-        multiplier = 0
-        spin_payout = 0
-        for v in win_data.values():
-            multiplier += len(v)
-            print(v)
-        spin_payout = (multiplier * curr_player.bet_size)
-        curr_player.balance += spin_payout
-        self.machine_balance -= spin_payout
-        curr_player.last_payout = spin_payout
-        curr_player.total_won += spin_payout
+        # Wypłata wygranej graczowi
+        multiplier = 0  # Mnożnik wygranej
+        spin_payout = 0  # Kwota wygranej
 
-    # You need to provide sounds and load them in the Machine init function for this to work!
+        for v in win_data.values():
+            multiplier += len(v)  # Dodanie liczby wygranych symboli
+            print(v)  # Debugowanie: Wyświetlenie wygranych danych
+
+        spin_payout = (multiplier * curr_player.bet_size)  # Obliczanie wypłaty
+        curr_player.balance += spin_payout  # Dodanie wygranej do balansu gracza
+        self.machine_balance -= spin_payout  # Odjęcie wygranej z balansu maszyny
+        curr_player.last_payout = spin_payout  # Zapisanie ostatniej wygranej
+        curr_player.total_won += spin_payout  # Aktualizacja całkowitych wygranych gracza
 
     def update(self, delta_time):
-        self.cooldowns()
-        self.input()
-        self.draw_reels(delta_time)
-        for reel in self.reel_list:
-            self.reel_list[reel].symbol_list.draw(self.display_surface)
-            self.reel_list[reel].symbol_list.update()
+        # Główna funkcja aktualizująca stan maszyny
+        self.cooldowns()  # Sprawdzanie stanu bębnów
+        self.input()  # Obsługa wejścia
+        self.draw_reels(delta_time)  # Rysowanie bębnów
 
-        # Balance/payout debugger
+        for reel in self.reel_list:
+            self.reel_list[reel].symbol_list.draw(self.display_surface)  # Rysowanie symboli na bębnach
+            self.reel_list[reel].symbol_list.update()  # Aktualizacja symboli
+
+# Balance/payout debugger
         # debug_player_data = self.currPlayer.get_data()
         # machine_balance = "{:.2f}".format(self.machine_balance)
         # if self.currPlayer.last_payout:
